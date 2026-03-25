@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendar - The Barber</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/booking.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="../index.html" class="navbar__logo">
+                <span class="navbar__logo-icon">✦</span>
+                <span class="navbar__logo-text">THE BARBER</span>
+            </a>
+            <button class="navbar__toggle" aria-label="Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="navbar__menu">
+                <li><a href="../index.html" class="navbar__link">Home</a></li>
+                <li><a href="about.html" class="navbar__link">Sobre</a></li>
+                <li><a href="booking.html" class="navbar__link navbar__link--active navbar__link--cta">Agendar</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="booking-page">
+        <div class="container">
+            <div class="booking-layout">
+                <section class="booking-form-section">
+                    <header class="booking-header">
+                        <h1 class="booking-header__title">Agende seu Horário</h1>
+                        <p class="booking-header__subtitle">Preencha os dados abaixo para reservar seu atendimento</p>
+                    </header>
+
+                    <form class="booking-form" id="bookingForm" novalidate>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="nome">Nome completo *</label>
+                                <input 
+                                    type="text" 
+                                    id="nome" 
+                                    name="nome" 
+                                    class="form-input" 
+                                    placeholder="Digite seu nome"
+                                    required
+                                    minlength="3"
+                                    autocomplete="name"
+                                >
+                                <span class="form-error" id="error-nome"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-row form-row--2col">
+                            <div class="form-group">
+                                <label class="form-label" for="email">E-mail *</label>
+                                <input 
+                                    type="email" 
+                                    id="email" 
+                                    name="email" 
+                                    class="form-input" 
+                                    placeholder="seu@email.com"
+                                    required
+                                    autocomplete="email"
+                                >
+                                <span class="form-error" id="error-email"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="telefone">Telefone *</label>
+                                <input 
+                                    type="tel" 
+                                    id="telefone" 
+                                    name="telefone" 
+                                    class="form-input" 
+                                    placeholder="(11) 99999-9999"
+                                    required
+                                    maxlength="15"
+                                    autocomplete="tel"
+                                >
+                                <span class="form-error" id="error-telefone"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="servico">Serviço *</label>
+                            <select id="servico" name="servico" class="form-select" required>
+                                <option value="">Selecione um serviço</option>
+                                <option value="corte-classico" data-price="45">Corte Clássico - R$ 45</option>
+                                <option value="barba" data-price="35">Barba Completa - R$ 35</option>
+                                <option value="combo" data-price="70">Combo (Corte + Barba) - R$ 70</option>
+                                <option value="tratamento" data-price="55">Tratamento Capilar - R$ 55</option>
+                            </select>
+                            <span class="form-error" id="error-servico"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="data">Data *</label>
+                            <input 
+                                type="date" 
+                                id="data" 
+                                name="data" 
+                                class="form-input" 
+                                required
+                                min=""
+                            >
+                            <span class="form-error" id="error-data"></span>
+                        </div>
+
+                        <!-- NOVO: Seleção de horários em Cards -->
+                        <div class="form-group form-group--timeslots">
+                            <label class="form-label">Horário disponível *</label>
+                            <input type="hidden" id="horario" name="horario" required>
+                            
+                            <div class="timeslots-container" id="timeslotsContainer">
+                                <div class="timeslots-placeholder">
+                                    <span class="timeslots-placeholder__icon">📅</span>
+                                    <p>Selecione uma data para ver os horários disponíveis</p>
+                                </div>
+                            </div>
+                            
+                            <div class="loading-times" id="loadingTimes" style="display: none;">
+                                <span class="spinner"></span>
+                                <span>Carregando horários...</span>
+                            </div>
+                            
+                            <span class="form-error" id="error-horario"></span>
+                        </div>
+
+                        <div class="form-summary" id="formSummary">
+                            <h3 class="form-summary__title">Resumo do Agendamento</h3>
+                            <div class="form-summary__content">
+                                <div class="summary-item">
+                                    <span class="summary-item__label">Serviço:</span>
+                                    <span class="summary-item__value" id="summaryServico">-</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="summary-item__label">Data:</span>
+                                    <span class="summary-item__value" id="summaryData">-</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span class="summary-item__label">Horário:</span>
+                                    <span class="summary-item__value" id="summaryHorario">-</span>
+                                </div>
+                                <div class="summary-item summary-item--total">
+                                    <span class="summary-item__label">Total:</span>
+                                    <span class="summary-item__value" id="summaryTotal">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn--primary btn--large btn--full" id="submitBtn">
+                            <span>Confirmar Agendamento</span>
+                            <svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 12h14M12 5l7 7-7 7"/>
+                            </svg>
+                        </button>
+                    </form>
+                </section>
+
+                <aside class="booking-sidebar">
+                    <div class="sidebar-card">
+                        <h3 class="sidebar-card__title">Horário de Funcionamento</h3>
+                        <ul class="sidebar-hours">
+                            <li class="sidebar-hours__item">
+                                <span>Terça - Sexta</span>
+                                <span>09:00 - 20:00</span>
+                            </li>
+                            <li class="sidebar-hours__item">
+                                <span>Sábado</span>
+                                <span>09:00 - 18:00</span>
+                            </li>
+                            <li class="sidebar-hours__item">
+                                <span>Domingo</span>
+                                <span>10:00 - 16:00</span>
+                            </li>
+                            <li class="sidebar-hours__item sidebar-hours__item--closed">
+                                <span>Segunda</span>
+                                <span>Fechado</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="sidebar-card">
+                        <h3 class="sidebar-card__title">Política de Cancelamento</h3>
+                        <p class="sidebar-card__text">
+                            Cancelamentos devem ser realizados com pelo menos 2 horas de antecedência. 
+                        </p>
+                    </div>
+
+                    <div class="sidebar-card sidebar-card--contact">
+                        <h3 class="sidebar-card__title">Precisa de ajuda?</h3>
+                        <p class="sidebar-card__text">
+                            Entre em contato pelo WhatsApp (11) 99999-9999
+                        </p>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </main>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="loading-spinner__ring"></div>
+        </div>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <script src="../js/validation.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/booking.js"></script>
+</body>
+</html>

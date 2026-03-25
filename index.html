@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Barber - Premium Barbershop</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/home.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="navbar__logo">
+                <span class="navbar__logo-icon">✦</span>
+                <span class="navbar__logo-text">THE BARBER</span>
+            </a>
+            <button class="navbar__toggle" aria-label="Menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="navbar__menu">
+                <li><a href="index.html" class="navbar__link navbar__link--active">Home</a></li>
+                <li><a href="pages/about.html" class="navbar__link">Sobre</a></li>
+                <li><a href="pages/booking.html" class="navbar__link navbar__link--cta">Agendar</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero">
+        <div class="hero__background">
+            <div class="hero__overlay"></div>
+        </div>
+        <div class="container">
+            <div class="hero__content">
+                <div class="hero__logo">
+                    <div class="hero__logo-image">
+                        <svg viewBox="0 0 100 100" class="hero__icon">
+                            <circle cx="50" cy="50" r="45" fill="#D4A574" opacity="0.2"/>
+                            <path d="M35 30 Q50 20 65 30 Q75 35 75 50 Q75 65 65 70 Q50 80 35 70 Q25 65 25 50 Q25 35 35 30" fill="#2C2C2C"/>
+                            <path d="M40 35 Q50 30 60 35 Q65 40 65 50 Q65 60 60 65 Q50 70 40 65 Q35 60 35 50 Q35 40 40 35" fill="#D4A574"/>
+                            <path d="M30 45 Q25 50 30 55 M70 45 Q75 50 70 55" stroke="#2C2C2C" stroke-width="2" fill="none"/>
+                        </svg>
+                    </div>
+                    <h1 class="hero__title">THE BARBER</h1>
+                    <p class="hero__subtitle">Get the Best Haircut Here</p>
+                </div>
+                
+                <div class="hero__info">
+                    <div class="hero__details">
+                        <div class="hero__detail">
+                            <span class="hero__detail-icon">📍</span>
+                            <span>R. Augusta, 500 - Consolação, São Paulo</span>
+                        </div>
+                        <div class="hero__detail">
+                            <span class="hero__detail-icon">📞</span>
+                            <span>(11) 99999-9999</span>
+                        </div>
+                        <div class="hero__detail">
+                            <span class="hero__detail-icon">🕐</span>
+                            <span>Ter - Dom: 9h às 20h</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hero__actions">
+                    <a href="pages/booking.html" class="btn btn--primary btn--large">
+                        <span>Agendar Horário</span>
+                        <svg class="btn__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                    <a href="pages/about.html" class="btn btn--secondary btn--large">
+                        Sobre a Barbearia
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <div class="features__grid">
+                <article class="feature-card">
+                    <div class="feature-card__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-card__title">Profissionais Expert</h3>
+                    <p class="feature-card__text">Barbeiros especializados com anos de experiência em cortes clássicos e modernos.</p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-card__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="12" cy="12" r="10"/>
+                            <path d="M12 6v6l4 2"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-card__title">Agendamento Online</h3>
+                    <p class="feature-card__text">Reserve seu horário de forma rápida e prática, 24 horas por dia.</p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-card__icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="feature-card__title">Experiência Premium</h3>
+                    <p class="feature-card__text">Ambiente sofisticado com atendimento personalizado e produtos de alta qualidade.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer__content">
+                <div class="footer__brand">
+                    <span class="footer__logo">THE BARBER</span>
+                    <p class="footer__tagline">Estilo e tradição desde 2015</p>
+                </div>
+                <div class="footer__social">
+                    <a href="#" class="footer__social-link" aria-label="Instagram">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                        </svg>
+                    </a>
+                    <a href="#" class="footer__social-link" aria-label="WhatsApp">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+            <div class="footer__bottom">
+                <p>&copy; 2024 The Barber. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="loading-spinner__ring"></div>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
