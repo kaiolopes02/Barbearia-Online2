@@ -16,6 +16,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let isSubmitting = false;
 
+  // Configuração de horários de funcionamento
+  const BUSINESS_HOURS = {
+    0: { open: '10:00', close: '16:00', name: 'Domingo' },      // Domingo
+    1: null,                                                    // Segunda - Fechado
+    2: { open: '09:00', close: '20:00', name: 'Terça' },        // Terça
+    3: { open: '09:00', close: '20:00', name: 'Quarta' },       // Quarta
+    4: { open: '09:00', close: '20:00', name: 'Quinta' },       // Quinta
+    5: { open: '09:00', close: '20:00', name: 'Sexta' },        // Sexta
+    6: { open: '09:00', close: '18:00', name: 'Sábado' }        // Sábado
+  };
+
   // Máscara de telefone
   telefoneInput.addEventListener('input', (e) => {
     e.target.value = Utils.formatPhone(e.target.value);
@@ -33,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Debounce para mudança de data (evita spam de requests)
+  // Debounce para mudança de data
   let dateChangeTimeout;
   dataInput.addEventListener('change', () => {
     clearTimeout(dateChangeTimeout);
@@ -44,8 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     Validation.clearFieldError('data');
     Validation.clearFieldError('horario');
     
-    // CRÍTICO: Limpa o horário selecionado quando muda a data
-    // Isso evita o bug de manter horário de outra data selecionado
+    // Limpa o horário selecionado quando muda a data
     horarioInput.value = '';
     updateSummary();
     
@@ -61,7 +71,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Validação de segunda-feira (timezone-safe)
-    const dayOfWeek = new Date(`${date}T12:00:00`).getDay();
+    const selectedDate = new Date(`${date}T12:00:00`);
+    const dayOfWeek = selectedDate.getDay();
+    
     if (dayOfWeek === 1) {
       Utils.showToast('Não atendemos às segundas-feiras', 'error');
       dataInput.value = '';
@@ -87,6 +99,49 @@ document.addEventListener('DOMContentLoaded', () => {
     timeslotsContainer.classList.remove('timeslots-container--error');
   }
 
+  /**
+   * FILTRO DE HORÁRIOS POR FUNCIONAMENTO E HORA ATUAL
+   * Remove horários fora do expediente e horários que já passaram (se for hoje)
+   */
+  function filterSlotsByBusinessHours(slots, selectedDateStr) {
+    const selectedDate = new Date(`${selectedDateStr}T12:00:00`);
+    const dayOfWeek = selectedDate.getDay();
+    const businessHours = BUSINESS_HOURS[dayOfWeek];
+
+    // Se não tem horário de funcionamento (segunda), retorna vazio
+    if (!businessHours) return [];
+
+    // Converte horários de funcionamento para minutos para comparação fácil
+    const openMinutes = timeToMinutes(businessHours.open);
+    const closeMinutes = timeToMinutes(businessHours.close);
+
+    // Verifica se é hoje
+    const now = new Date();
+    const isToday = selectedDateStr === now.toISOString().split('T')[0];
+    const currentMinutes = isToday ? (now.getHours() * 60 + now.getMinutes()) : 0;
+
+    return slots.filter(slot => {
+      const slotMinutes = timeToMinutes(slot.time);
+      
+      // Verifica se está dentro do horário de funcionamento
+      if (slotMinutes < openMinutes || slotMinutes >= closeMinutes) {
+        return false;
+      }
+
+      // Se for hoje, verifica se o horário já passou (com margem de 5 minutos)
+      if (isToday && slotMinutes <= currentMinutes + 5) {
+        return false;
+      }
+
+      return true;
+    });
+  }
+
+  function timeToMinutes(timeStr) {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+  }
+
   async function loadAvailableTimes(date) {
     timeslotsContainer.innerHTML = '';
     loadingTimes.style.display = 'flex';
@@ -99,19 +154,32 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(response.error || 'Erro ao carregar horários');
       }
 
-      const availableSlots = response.slots;
+      // APLICA O FILTRO DE HORÁRIO DE FUNCIONAMENTO E HORÁRIOS PASSADOS
+      let availableSlots = response.slots;
+      availableSlots = filterSlotsByBusinessHours(availableSlots, date);
 
       if (availableSlots.length === 0) {
+        const selectedDate = new Date(`${date}T12:00:00`);
+        const dayOfWeek = selectedDate.getDay();
+        const businessHours = BUSINESS_HOURS[dayOfWeek];
+        
+        let message = 'Nenhum horário disponível para esta data.<br>Escolha outra data.';
+        
+        if (businessHours) {
+          message = `Nenhum horário disponível para ${businessHours.name}.<br>` +
+                   `Horário de funcionamento: ${businessHours.open} às ${businessHours.close}.`;
+        }
+
         timeslotsContainer.innerHTML = `
           <div class="timeslots-placeholder timeslots-placeholder--error">
             <span class="timeslots-placeholder__icon">⚠️</span>
-            <p><strong>Sem horários disponíveis</strong><br>Escolha outra data.</p>
+            <p>${message}</p>
           </div>
         `;
         return;
       }
 
-      // Renderiza apenas disponíveis (já filtrado pelo backend, mas double-check)
+      // Renderiza apenas os disponíveis e dentro do horário
       availableSlots.forEach(slot => {
         if (slot.available) {
           timeslotsContainer.appendChild(createTimeslotCard(slot));
@@ -213,7 +281,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const date = formData.get('data');
     const time = formData.get('horario');
 
-    // Confirmação final de disponibilidade (prevenção de race condition no cliente)
+    // Validação adicional: verifica se o horário ainda está disponível (pode ter expirado)
+    const selectedDate = new Date(`${date}T12:00:00`);
+    const dayOfWeek = selectedDate.getDay();
+    const businessHours = BUSINESS_HOURS[dayOfWeek];
+    
+    if (businessHours) {
+      const slotMinutes = timeToMinutes(time);
+      const openMinutes = timeToMinutes(businessHours.open);
+      const closeMinutes = timeToMinutes(businessHours.close);
+      
+      if (slotMinutes < openMinutes || slotMinutes >= closeMinutes) {
+        Utils.showToast(`Horário fora do expediente de ${businessHours.name}`, 'error');
+        await loadAvailableTimes(date);
+        return;
+      }
+    }
+
     Utils.toggleLoading(true);
     isSubmitting = true;
     submitBtn.disabled = true;
@@ -227,14 +311,15 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(checkResponse.error || 'Erro ao verificar disponibilidade');
       }
 
-      const stillAvailable = checkResponse.slots.some(s => s.time === time && s.available);
-      
+      // Re-filtra no cliente para garantir que o horário ainda é válido
+      const stillAvailableSlots = filterSlotsByBusinessHours(checkResponse.slots, date);
+      const stillAvailable = stillAvailableSlots.some(s => s.time === time && s.available);
+
       if (!stillAvailable) {
-        Utils.showToast('Este horário acabou de ser reservado. Por favor, escolha outro.', 'error');
+        Utils.showToast('Este horário não está mais disponível. Por favor, escolha outro.', 'error');
         await loadAvailableTimes(date);
         horarioInput.value = '';
         updateSummary();
-        // Dá scroll para os horários
         timeslotsContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
@@ -259,7 +344,6 @@ document.addEventListener('DOMContentLoaded', () => {
         Utils.storeSession('lastBooking', appointmentData);
         window.location.href = 'confirmation.html';
       } else {
-        // Erro específico do servidor (ex: "Horário já ocupado")
         Utils.showToast(result.error || 'Erro ao criar agendamento', 'error');
         
         if (result.error && result.error.includes('ocupado')) {
