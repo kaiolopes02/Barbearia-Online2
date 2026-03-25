@@ -1,26 +1,16 @@
 // js/api.js
 
 const CONFIG = {
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw5arlK9wQ8CGkkqBkOUqi3r5bX7J5ckpwxIIf_un4dFw6JUJ0nK9h1zg9zhSpFkx18IA/exec',
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz6zv3vrbXCR7mppGDxZ6w2DpyOoAcMlZs4EfiWPDws8ktQs0X6kuXrCOE90lNU-oWEHA/exec',
+  TIMEOUT_MS: 15000, // Aumentado para 15s
 };
 
 /**
- * JSONP Fetch — solução definitiva para o CORS do Google Apps Script.
- *
- * O GAS faz um redirect 302 interno (script.google.com →
- * script.googleusercontent.com) sem headers CORS. O browser bloqueia
- * a resposta antes dela chegar, independente do que o GAS coloque nos
- * headers da resposta final.
- *
- * JSONP injeta uma <script> tag em vez de fetch/XHR.
- * Script tags não estão sujeitas ao CORS, então o redirect é
- * seguido e a resposta é executada normalmente.
- *
- * Requer que o GAS envolva a resposta em: callbackName(jsonData)
+ * JSONP Fetch com melhor tratamento de erro e cleanup
  */
-function jsonpFetch(url, timeoutMs = 10000) {
+function jsonpFetch(url, timeoutMs = CONFIG.TIMEOUT_MS) {
   return new Promise((resolve, reject) => {
-    const callbackName = '__gasCallback_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const callbackName = '_cb_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
     const script = document.createElement('script');
     let settled = false;
 
@@ -28,107 +18,119 @@ function jsonpFetch(url, timeoutMs = 10000) {
       settled = true;
       delete window[callbackName];
       if (script.parentNode) script.parentNode.removeChild(script);
+      clearTimeout(timer);
     };
 
     const timer = setTimeout(() => {
       if (!settled) {
         cleanup();
-        reject(new Error('Timeout: o servidor demorou demais para responder'));
+        reject(new Error('Tempo esgotado ao conectar com o servidor. Tente novamente.'));
       }
     }, timeoutMs);
 
     window[callbackName] = (data) => {
-      clearTimeout(timer);
-      cleanup();
-      resolve(data);
+      if (!settled) {
+        cleanup();
+        // Valida se a resposta é um objeto válido
+        if (data && typeof data === 'object') {
+          resolve(data);
+        } else {
+          reject(new Error('Resposta inválida do servidor'));
+        }
+      }
     };
 
     script.onerror = () => {
-      clearTimeout(timer);
-      cleanup();
-      reject(new Error('Falha de rede ao conectar com o servidor'));
+      if (!settled) {
+        cleanup();
+        reject(new Error('Falha de rede. Verifique sua conexão.'));
+      }
     };
 
-    script.src = `${url}&callback=${callbackName}`;
-    document.head.appendChild(script);
+    // Adiciona cache-buster e garante que callback seja o último parâmetro
+    const separator = url.includes('?') ? '&' : '?';
+    script.src = `${url}${separator}_=${Date.now()}&callback=${callbackName}`;
+    
+    // Adiciona ao DOM de forma assíncrona para evitar bloqueio
+    requestAnimationFrame(() => {
+      document.head.appendChild(script);
+    });
   });
 }
 
 const APIService = {
 
-  /**
-   * Busca horários disponíveis para uma data.
-   */
   getAvailableSlots: async (date) => {
     try {
-      const url = `${CONFIG.SCRIPT_URL}?action=getSlots&date=${encodeURIComponent(date)}&_=${Date.now()}`;
+      if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+        throw new Error('Data inválida');
+      }
+      
+      const url = `${CONFIG.SCRIPT_URL}?action=getSlots&date=${encodeURIComponent(date)}`;
       const data = await jsonpFetch(url);
 
-      if (!data.success) {
-        throw new Error(data.error || data.message || 'Erro desconhecido no servidor');
+      if (!data || !data.success) {
+        throw new Error((data && data.error) || 'Erro ao carregar horários');
+      }
+
+      // Garante que slots seja um array
+      if (!Array.isArray(data.slots)) {
+        throw new Error('Formato de resposta inválido');
       }
 
       return data;
-
     } catch (error) {
       console.error('[API] getAvailableSlots error:', error);
       return { success: false, error: error.message };
     }
   },
 
-  /**
-   * Cria um novo agendamento via GET + JSONP.
-   *
-   * POST dispara CORS preflight (OPTIONS) que o GAS não suporta.
-   * Solução: converter para GET com URLSearchParams + JSONP.
-   * O GAS foi atualizado para aceitar action=create via doGet.
-   */
   createAppointment: async (data) => {
     try {
+      // Validação prévia dos dados
+      if (!data || !data.data || !data.horario || !data.nome) {
+        throw new Error('Dados incompletos para agendamento');
+      }
+
       const params = new URLSearchParams({
         action:    'create',
         id:        data.id,
-        nome:      data.nome,
-        email:     data.email     || '',
-        telefone:  data.telefone  || '',
-        servico:   data.servico   || '',
+        nome:      String(data.nome).trim(),
+        email:     String(data.email || '').trim(),
+        telefone:  String(data.telefone || '').trim(),
+        servico:   String(data.servico || ''),
         data:      data.data,
         horario:   data.horario,
-        status:    data.status    || 'Ativo',
+        status:    'Ativo',
         createdAt: data.createdAt || new Date().toISOString(),
-        _:         Date.now(),
       });
 
       const url = `${CONFIG.SCRIPT_URL}?${params.toString()}`;
       const result = await jsonpFetch(url);
 
-      if (!result.success) {
-        throw new Error(result.error || result.message || 'Erro ao criar agendamento');
+      if (!result || !result.success) {
+        throw new Error((result && result.error) || 'Erro ao criar agendamento');
       }
 
       return result;
-
     } catch (error) {
       console.error('[API] createAppointment error:', error);
       return { success: false, error: error.message };
     }
   },
 
-  /**
-   * Cancela um agendamento pelo ID via GET + JSONP.
-   * O GAS foi atualizado para aceitar action=cancel via doGet.
-   */
   cancelAppointment: async (id) => {
     try {
-      const url = `${CONFIG.SCRIPT_URL}?action=cancel&id=${encodeURIComponent(id)}&_=${Date.now()}`;
+      if (!id) throw new Error('ID é obrigatório');
+      
+      const url = `${CONFIG.SCRIPT_URL}?action=cancel&id=${encodeURIComponent(id)}`;
       const result = await jsonpFetch(url);
 
-      if (!result.success) {
-        throw new Error(result.error || result.message || 'Erro ao cancelar agendamento');
+      if (!result || !result.success) {
+        throw new Error((result && result.error) || 'Erro ao cancelar agendamento');
       }
 
       return result;
-
     } catch (error) {
       console.error('[API] cancelAppointment error:', error);
       return { success: false, error: error.message };

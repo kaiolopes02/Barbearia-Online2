@@ -24,7 +24,25 @@ const Validation = {
     },
     data: {
       required: true,
-      message:  'Selecione uma data',
+      custom:   (value) => {
+        if (!value) return { valid: false, message: 'Selecione uma data' };
+        
+        // Verifica se não é no passado (comparando datas sem horário)
+        const selected = new Date(`${value}T12:00:00`);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (selected < today) {
+          return { valid: false, message: 'Não é possível agendar no passado' };
+        }
+        
+        // Verifica se não é segunda (1)
+        if (selected.getDay() === 1) {
+          return { valid: false, message: 'Não atendemos às segundas-feiras' };
+        }
+        
+        return { valid: true };
+      }
     },
     horario: {
       required: true,
@@ -47,6 +65,11 @@ const Validation = {
     if (value && rule.pattern && !rule.pattern.test(value)) {
       return { valid: false, message: rule.message };
     }
+    
+    if (rule.custom) {
+      const result = rule.custom(value);
+      if (!result.valid) return result;
+    }
 
     return { valid: true };
   },
@@ -66,18 +89,10 @@ const Validation = {
     return { isValid, errors };
   },
 
-  /**
-   * Exibe erro em um campo.
-   *
-   * BUG CORRIGIDO: o campo `horario` é um <input type="hidden">, portanto
-   * não recebe a classe visual de erro. Para ele, aplica a borda de erro
-   * no container de timeslots (.timeslots-container) em vez do input.
-   */
   showFieldError: (fieldId, message) => {
     const errorElement = document.getElementById(`error-${fieldId}`);
 
     if (fieldId === 'horario') {
-      // Aplica feedback visual no container de cards
       const container = document.getElementById('timeslotsContainer');
       if (container) container.classList.add('timeslots-container--error');
     } else {
@@ -109,7 +124,6 @@ const Validation = {
     document.querySelectorAll('.form-error').forEach(el => {
       el.textContent = '';
     });
-    // Limpa erro visual do container de horários
     const container = document.getElementById('timeslotsContainer');
     if (container) container.classList.remove('timeslots-container--error');
   },
