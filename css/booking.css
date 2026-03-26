@@ -175,7 +175,9 @@
   to { transform: rotate(360deg); }
 }
 
-/* Summary */
+/* ============================================
+   SUMMARY - CORREÇÕES MOBILE
+   ============================================ */
 .form-summary {
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   padding: var(--space-xl);
@@ -200,15 +202,22 @@
   display: flex;
   justify-content: space-between;
   font-size: 0.9375rem;
+  gap: var(--space-md); /* Adicionado para evitar colagem */
+  flex-wrap: wrap; /* Permite quebra em telas pequenas */
 }
 
 .summary-item__label {
   color: var(--color-text-muted);
+  flex-shrink: 0; /* Evita que o label encolha */
 }
 
 .summary-item__value {
   font-weight: 500;
   color: var(--color-text);
+  text-align: right;
+  word-break: break-word; /* Quebra palavras longas se necessário */
+  flex: 1; /* Ocupa espaço disponível */
+  min-width: 0; /* Permite encolher abaixo do conteúdo */
 }
 
 .summary-item--total {
@@ -265,6 +274,7 @@
   font-size: 0.9375rem;
   padding: var(--space-sm) 0;
   border-bottom: 1px solid var(--color-border);
+  gap: var(--space-sm); /* Evita colagem em mobile */
 }
 
 .sidebar-hours__item:last-child {
@@ -295,7 +305,9 @@
   color: rgba(255,255,255,0.9);
 }
 
-/* Responsive */
+/* ============================================
+   RESPONSIVE - CORREÇÕES MOBILE
+   ============================================ */
 @media (max-width: 968px) {
   .booking-layout {
     grid-template-columns: 1fr;
@@ -319,10 +331,49 @@
   .timeslots-container {
     grid-template-columns: repeat(3, 1fr);
   }
+
+  /* CORREÇÃO MOBILE: Summary mais compacto */
+  .form-summary {
+    padding: var(--space-lg);
+  }
+
+  .summary-item {
+    font-size: 0.875rem;
+    padding: var(--space-xs) 0;
+  }
+
+  .summary-item__value {
+    font-size: 0.875rem;
+  }
+
+  .summary-item--total {
+    font-size: 1rem;
+  }
+
+  .summary-item--total .summary-item__value {
+    font-size: 1.125rem;
+  }
 }
 
 @media (max-width: 480px) {
   .timeslots-container {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* CORREÇÃO MOBILE: Summary em coluna em telas muito pequenas */
+  .summary-item {
+    flex-direction: column;
+    gap: var(--space-xs);
+    align-items: flex-start;
+  }
+
+  .summary-item__value {
+    text-align: left;
+    font-weight: 600;
+  }
+
+  .summary-item--total {
+    flex-direction: row;
+    align-items: center;
   }
 }
