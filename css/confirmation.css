@@ -18,6 +18,10 @@
   width: 100%;
   text-align: center;
   animation: fadeInUp 0.6s ease;
+  /* CORREÇÃO: Garante que não ultrapasse a viewport em mobile */
+  max-height: 90vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* Scroll suave no iOS */
 }
 
 @keyframes fadeInUp {
@@ -42,6 +46,7 @@
   align-items: center;
   justify-content: center;
   animation: scaleIn 0.5s ease 0.2s both;
+  flex-shrink: 0; /* Evita que encolha */
 }
 
 @keyframes scaleIn {
@@ -62,6 +67,7 @@
   font-size: 2rem;
   color: var(--color-primary);
   margin-bottom: var(--space-sm);
+  line-height: 1.2; /* Evita corte em títulos longos */
 }
 
 .confirmation-subtitle {
@@ -69,12 +75,19 @@
   margin-bottom: var(--space-2xl);
 }
 
+/* ============================================
+   CONFIRMATION DETAILS - CORREÇÕES MOBILE
+   ============================================ */
 .confirmation-details {
   background: var(--color-background);
   border-radius: var(--radius-lg);
   padding: var(--space-xl);
   margin-bottom: var(--space-xl);
   text-align: left;
+  /* CORREÇÃO: Garante que o conteúdo não vaze */
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .detail-row {
@@ -82,30 +95,61 @@
   justify-content: space-between;
   padding: var(--space-md) 0;
   border-bottom: 1px solid var(--color-border);
+  gap: var(--space-md); /* Evita colagem */
+  flex-wrap: wrap; /* Permite quebra em mobile */
 }
 
 .detail-row:last-child {
   border-bottom: none;
 }
 
+/* CORREÇÃO ESPECIAL: ID do agendamento sempre visível */
 .detail-row--highlight {
   background: rgba(212, 165, 116, 0.1);
   margin: var(--space-sm) calc(-1 * var(--space-lg));
   padding: var(--space-md) var(--space-lg);
   border-radius: var(--radius-md);
   border-bottom: none;
+  flex-wrap: nowrap; /* Mantém na mesma linha se possível */
+}
+
+/* Se não couber, quebra de forma controlada */
+@media (max-width: 400px) {
+  .detail-row--highlight {
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
 }
 
 .detail-label {
   font-size: 0.875rem;
   color: var(--color-text-muted);
   font-weight: 500;
+  flex-shrink: 0; /* Label não encolhe */
 }
 
 .detail-value {
   font-size: 0.9375rem;
   color: var(--color-text);
   font-weight: 600;
+  text-align: right;
+  /* CORREÇÃO CRÍTICA: Quebra palavras longas (como IDs) */
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  min-width: 0; /* Permite encolher */
+}
+
+/* Estilo especial para o ID - sempre visível */
+.detail-row--highlight .detail-value {
+  font-family: 'Courier New', monospace; /* Fonte monospaced para IDs */
+  font-size: 0.875rem;
+  letter-spacing: 0.5px;
+  color: var(--color-primary);
+  background: rgba(255,255,255,0.5);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
 }
 
 .confirmation-actions {
@@ -128,11 +172,120 @@
   font-size: 0.875rem;
   color: var(--color-text-muted);
   line-height: 1.6;
+  /* CORREÇÃO: Garante que não fique colada nas bordas em mobile */
+  padding: 0 var(--space-sm);
 }
 
+/* ============================================
+   RESPONSIVE - CORREÇÕES MOBILE
+   ============================================ */
 @media (min-width: 640px) {
   .confirmation-actions {
     flex-direction: row;
     justify-content: center;
+  }
+}
+
+/* CORREÇÕES ESPECÍFICAS PARA MOBILE */
+@media (max-width: 640px) {
+  .confirmation-page {
+    padding: var(--space-md);
+    align-items: flex-start; /* Melhor scroll em mobile */
+    padding-top: var(--space-xl);
+  }
+
+  .confirmation-card {
+    padding: var(--space-xl);
+    max-height: none; /* Remove limite de altura em mobile */
+    margin: var(--space-md) 0;
+  }
+
+  .confirmation-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: var(--space-lg);
+  }
+
+  .confirmation-icon svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .confirmation-title {
+    font-size: 1.5rem;
+  }
+
+  .confirmation-subtitle {
+    font-size: 0.875rem;
+    margin-bottom: var(--space-xl);
+  }
+
+  .confirmation-details {
+    padding: var(--space-lg);
+    margin-bottom: var(--space-lg);
+  }
+
+  .detail-row {
+    padding: var(--space-sm) 0;
+    font-size: 0.875rem;
+  }
+
+  .detail-label {
+    font-size: 0.8125rem;
+  }
+
+  .detail-value {
+    font-size: 0.875rem;
+  }
+
+  /* ID em destaque sempre visível */
+  .detail-row--highlight {
+    margin: var(--space-xs) calc(-1 * var(--space-md));
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  .detail-row--highlight .detail-value {
+    font-size: 0.8125rem;
+    padding: var(--space-xs) var(--space-sm);
+  }
+
+  .confirmation-actions {
+    gap: var(--space-sm);
+  }
+
+  .confirmation-note {
+    font-size: 0.8125rem;
+  }
+}
+
+/* Telas muito pequenas */
+@media (max-width: 360px) {
+  .confirmation-card {
+    padding: var(--space-lg);
+    border-radius: var(--radius-lg);
+  }
+
+  .detail-row {
+    flex-direction: column;
+    gap: var(--space-xs);
+    align-items: flex-start;
+  }
+
+  .detail-value {
+    text-align: left;
+    width: 100%;
+  }
+
+  /* ID mantém destaque especial */
+  .detail-row--highlight {
+    flex-direction: column;
+    background: rgba(212, 165, 116, 0.15);
+  }
+
+  .detail-row--highlight .detail-value {
+    width: 100%;
+    text-align: center;
+    font-size: 0.875rem;
+    letter-spacing: 1px;
   }
 }
